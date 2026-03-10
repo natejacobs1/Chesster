@@ -14,7 +14,7 @@ try:
     # Try a simple generation
     print("\nTesting generation:")
     model = genai.GenerativeModel('gemini-pro')
-    response = model.generate_content('Say hello!')
+    response = model.generate_content('Greet Hello!)
     print(f"Response: {response.text}")
     
 except Exception as e:
