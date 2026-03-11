@@ -21,7 +21,7 @@ The application uses Google's Gemini AI models for the chatbot functionality. Wh
 
 ## Installation
 
-### Prerequisites
+### Prerequisites to be downloaded
 
 - Python 3.x
 - [Stockfish](https://stockfishchess.org/download/) or [LC0 (Leela Chess Zero)](https://lczero.org/play/download/)
