@@ -1,0 +1,7 @@
+{
+  "name": "Chesster",
+  "description": "An interactive chess analysis and chatbot platform to review games, explore positions, and learn from an AI grandmaster.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

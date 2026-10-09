@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♞</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chesster</title>
+    <meta name="description" content="An interactive chess analysis and chatbot platform to review games, explore positions, and learn from an AI grandmaster." />
+    <meta property="og:title" content="Chesster" />
+    <meta property="og:description" content="An interactive chess analysis and chatbot platform to review games, explore positions, and learn from an AI grandmaster." />
+    <script>
+      // Suppress Vite WebSocket reconnect errors in iframe preview
+      window.addEventListener('unhandledrejection', function(event) {
+        if (event && event.reason && (String(event.reason).includes('WebSocket') || (event.reason.message && event.reason.message.includes('WebSocket')))) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      });
+      window.addEventListener('error', function(event) {
+        if (event && event.message && event.message.includes('WebSocket')) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      });
+    </script>
+  </head>
+  <body class="bg-slate-100 text-slate-900 min-h-screen">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
