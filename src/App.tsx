@@ -14,7 +14,7 @@ import {
   normalizeMove
 } from './chessLogic';
 import { MoveAnalysis, ChatMessage } from './types';
-import { Search, RotateCw, ExternalLink, BookOpen } from 'lucide-react';
+import { RotateCw, ArrowRight } from 'lucide-react';
 
 export default function App() {
   const [urlInput, setUrlInput] = useState(DEFAULT_INITIAL_URL);
@@ -58,51 +58,27 @@ export default function App() {
   // Analyze the game whenever movesList changes
   const runGameAnalysis = useCallback((moves: string[]) => {
     setIsAnalyzing(true);
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Math.random().toString(),
-        sender: 'system',
-        text: 'Analyzing game with engine evaluation & move quality classification...',
-        timestamp: new Date().toLocaleTimeString()
-      }
-    ]);
 
     setTimeout(() => {
       try {
         const { analyses: newAnalyses } = analyzeFullGame(moves);
         setAnalyses(newAnalyses);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Math.random().toString(),
-            sender: 'system',
-            text: `Finished game analysis (${newAnalyses.length} moves evaluated).`,
-            timestamp: new Date().toLocaleTimeString()
-          }
-        ]);
       } catch (err) {
         console.error('Analysis failed:', err);
       } finally {
         setIsAnalyzing(false);
       }
-    }, 50);
+    }, 40);
   }, []);
 
   // Initial load
   useEffect(() => {
     setMessages([
       {
-        id: 'welcome',
-        sender: 'system',
-        text: 'Chesster initialized. Game loaded: https://lichess.org/wI3YyUSi/black',
-        timestamp: new Date().toLocaleTimeString()
-      },
-      {
         id: 'intro',
         sender: 'chesster',
-        text: 'Welcome to **Chesster**! I am your AI Chess Grandmaster. Step through the game using the navigation controls and ask me anything about the moves, tactics, mistakes, or plans.',
-        timestamp: new Date().toLocaleTimeString()
+        text: 'Welcome to **Chesster**. Navigate through the game moves below to review the engine evaluation and quality classifications, or ask me any question about the position.',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
     runGameAnalysis(DEFAULT_INITIAL_MOVES_UCI);
@@ -112,16 +88,6 @@ export default function App() {
   const handleUrlSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!urlInput.trim()) return;
-
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Math.random().toString(),
-        sender: 'system',
-        text: `New URL / game entered: ${urlInput}`,
-        timestamp: new Date().toLocaleTimeString()
-      }
-    ]);
 
     // Check if we can fetch from lichess API or local parser
     let parsed = parseGameInput(urlInput);
@@ -141,26 +107,22 @@ export default function App() {
     setMovesList(parsed.moves);
     setCurrentMoveIndex(0);
     runGameAnalysis(parsed.moves);
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Math.random().toString(),
+        sender: 'system',
+        text: `Loaded game with ${parsed.moves.length} moves. Ready for analysis.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
   };
 
-  // Move selection
+  // Move selection without spamming chat logs
   const handleGoToMove = (index: number) => {
     if (index >= 0 && index <= movesList.length) {
       setCurrentMoveIndex(index);
-      const moveLabel =
-        index === 0
-          ? 'Initial position'
-          : `Move ${index}: ${analyses[index - 1]?.san || movesList[index - 1]}`;
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Math.random().toString(),
-          sender: 'system',
-          text: moveLabel,
-          timestamp: new Date().toLocaleTimeString()
-        }
-      ]);
     }
   };
 
@@ -170,13 +132,12 @@ export default function App() {
       id: Math.random().toString(),
       sender: 'user',
       text: userText,
-      timestamp: new Date().toLocaleTimeString()
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
     setMessages((prev) => [...prev, userMsg]);
     setIsChatLoading(true);
 
-    // Construct prompt context matching chess_utils.py / gui_utils.py
     const mat = countMaterialPosition(currentChess);
     const lastMoveSan = currentAnalysis?.san || null;
     const currentEval = currentAnalysis?.evaluation || 0;
@@ -212,7 +173,7 @@ export default function App() {
           id: Math.random().toString(),
           sender: 'chesster',
           text: replyText,
-          timestamp: new Date().toLocaleTimeString()
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
     } catch (err: any) {
@@ -222,8 +183,8 @@ export default function App() {
         {
           id: Math.random().toString(),
           sender: 'chesster',
-          text: `In this position with evaluation **${currentAnalysis?.evaluationStr || 'even'}**, focus on piece activity and king safety. (Error communicating with AI service)`,
-          timestamp: new Date().toLocaleTimeString()
+          text: `In this position with evaluation **${currentAnalysis?.evaluationStr || 'even'}**, prioritize king shelter and piece mobility.`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
     } finally {
@@ -232,68 +193,65 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
-      {/* Top Navbar */}
-      <header className="bg-slate-900 text-white border-b border-slate-800 shadow-sm sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-black text-lg shadow-sm">
-              ♞
+    <div className="min-h-screen bg-[#090a0b] text-zinc-100 flex flex-col font-sans selection:bg-blue-600/30">
+      {/* Sleek Minimalist Header */}
+      <header className="border-b border-zinc-800/80 bg-zinc-950/70 backdrop-blur sticky top-0 z-30">
+        <div className="max-w-6xl mx-auto px-4 h-12 flex items-center justify-between gap-4">
+          {/* Logo / Branding */}
+          <div className="flex items-center gap-2.5">
+            <span className="font-mono text-sm font-semibold tracking-tight text-white flex items-center gap-1.5">
+              <span className="text-zinc-400">♞</span>
+              <span>Chesster</span>
             </span>
-            <div>
-              <h1 className="text-base font-bold leading-tight flex items-center gap-2">
-                <span>Chesster</span>
-                <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-700/50">
-                  Game Review & AI
-                </span>
-              </h1>
-              <p className="text-[11px] text-slate-400">Interactive Chess Analysis GUI & Chatbot</p>
-            </div>
+            <span className="hidden sm:inline-block text-[11px] font-mono text-zinc-500 border-l border-zinc-800 pl-2.5">
+              Review & AI
+            </span>
           </div>
 
-          {/* Game URL Input Bar (PyQt url_input) */}
-          <form onSubmit={handleUrlSubmit} className="flex-1 max-w-xl flex items-center gap-1.5">
-            <div className="relative flex-1">
-              <input
-                type="text"
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="Enter game URL (e.g. https://lichess.org/wI3YyUSi/black)"
-                className="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
-              />
-            </div>
+          {/* URL Input Bar */}
+          <form onSubmit={handleUrlSubmit} className="flex-1 max-w-md flex items-center gap-1.5">
+            <input
+              type="text"
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              placeholder="Lichess URL or PGN..."
+              className="w-full rounded bg-zinc-900/90 border border-zinc-800/80 px-2.5 py-1 text-xs text-zinc-200 placeholder-zinc-500 font-mono focus:outline-none focus:border-zinc-600 transition"
+            />
             <button
               type="submit"
               disabled={isAnalyzing}
-              className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-500 disabled:opacity-50 transition shadow-xs"
+              title="Load & Analyze"
+              className="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white border border-zinc-700/60 text-xs font-mono transition disabled:opacity-40 flex items-center gap-1"
             >
-              <RotateCw className={`w-3.5 h-3.5 ${isAnalyzing ? 'animate-spin' : ''}`} />
-              <span>Analyze</span>
+              {isAnalyzing ? (
+                <RotateCw className="w-3 h-3 animate-spin text-zinc-400" />
+              ) : (
+                <ArrowRight className="w-3 h-3 text-zinc-400" />
+              )}
             </button>
           </form>
 
-          {/* Sample Game presets */}
-          <div className="flex items-center gap-1 text-xs">
-            <button
-              type="button"
-              onClick={() => {
-                setUrlInput('https://lichess.org/wI3YyUSi/black');
-                setMovesList(DEFAULT_INITIAL_MOVES_UCI);
-                setCurrentMoveIndex(0);
-                runGameAnalysis(DEFAULT_INITIAL_MOVES_UCI);
-              }}
-              className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px]"
-            >
-              Default Game (wI3YyUSi)
-            </button>
-          </div>
+          {/* Quick preset */}
+          <button
+            type="button"
+            onClick={() => {
+              setUrlInput(DEFAULT_INITIAL_URL);
+              setMovesList(DEFAULT_INITIAL_MOVES_UCI);
+              setCurrentMoveIndex(0);
+              runGameAnalysis(DEFAULT_INITIAL_MOVES_UCI);
+            }}
+            className="hidden md:inline-flex text-[11px] font-mono text-zinc-400 hover:text-zinc-200 px-2 py-0.5 rounded hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition"
+          >
+            Sample: wI3YyUSi
+          </button>
         </div>
       </header>
 
-      {/* Main Layout (Faithfully recreating PyQt layout: Board/controls on Left, Info on Right) */}
-      <main className="max-w-7xl w-full mx-auto p-4 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left Column: Board, Controls & Review timeline */}
-        <div className="lg:col-span-7 flex flex-col items-center gap-3">
+      {/* Main Layout */}
+      <main className="max-w-6xl w-full mx-auto p-4 sm:p-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Board, Controls & Notation timeline */}
+        <div className="lg:col-span-7 flex flex-col items-center gap-3 w-full">
+          {/* Note: ChessBoard component remains exactly as designed */}
           <ChessBoard
             chess={currentChess}
             flipped={flipped}
@@ -316,12 +274,13 @@ export default function App() {
           />
         </div>
 
-        {/* Right Column: Info & Chat Panel */}
-        <div className="lg:col-span-5 flex flex-col h-[640px]">
+        {/* Right Column: Clean Analysis & Chat Panel */}
+        <div className="lg:col-span-5 flex flex-col h-[580px] w-full">
           <ChatPanel
             messages={messages}
             isLoading={isChatLoading}
             onSendMessage={handleSendMessage}
+            currentAnalysis={currentAnalysis}
             currentMoveText={
               currentMoveIndex === 0
                 ? 'Initial Board'
